@@ -1,0 +1,27 @@
+{
+  "name": "richardhj/contao-upload_preview_field",
+  "description": "UploadPreviewField widget for Contao Open Source CMS",
+  "type": "contao-module",
+  "authors": [
+    {
+      "name": "Richard Henkenjohann",
+      "email": "richardhenkenjohann@googlemail.com",
+      "homepage": "http://henkenjohann.me",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "email": "richardhenkenjohann@googlemail.com"
+  },
+  "require": {
+    "php": "^5.3 || ^7.0",
+    "contao/core": "~3.2"
+  },
+  "extra": {
+    "contao": {
+      "sources": {
+        "system/modules/upload_preview_field": "system/modules/upload_preview_field"
+      }
+    }
+  }
+}
