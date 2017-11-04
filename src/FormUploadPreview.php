@@ -1,14 +1,32 @@
 <?php
 
+/**
+ * This file is part of richardhj/contao-widget-upload-preview.
+ *
+ * Copyright (c) 2016-2017 Richard Henkenjohann
+ *
+ * @package   richardhj/contao-widget-upload-preview
+ * @author    Richard Henkenjohann <richardhenkenjohann@googlemail.com>
+ * @copyright 2016-2017 Richard Henkenjohann
+ * @license   https://github.com/richardhj/contao-widget-upload-preview/blob/master/LICENSE LGPL-3.0
+ */
+
 namespace Richardhj\Contao\Widget;
 
 use Contao\Config;
+use Contao\File;
 use Contao\FilesModel;
 use Contao\FormFileUpload;
 use Contao\Image;
+use Contao\StringUtil;
 
 /**
  * Class FormUploadPreview
+ *
+ * @property mixed $thumbnailSize
+ * @property mixed $fallbackImage
+ * @property bool  $enableReset
+ * @property bool  $addMetaWizard
  *
  * @package Richardhj\Contao\Widget
  */
@@ -41,21 +59,91 @@ class FormUploadPreview extends FormFileUpload
      */
     public function __construct($attributes = null)
     {
+        // Adjust these variables in your child class on behalf.
+        // Alternatively, overwrite these variables via the `eval` array.
         $attributes = array_merge(
             [
+                /**
+                 * @var mixed UUID of the folder to save upload
+                 */
                 'uploadFolder'   => null,
+
+                /**
+                 * @var bool Do not replace the file, if there is a file with the same name already
+                 */
                 'doNotOverwrite' => false,
+
+                /**
+                 * @var bool Use the home directory of the user as save path
+                 */
                 'useUserHomeDir' => false,
+
+                /**
+                 * @var bool Store the file
+                 */
                 'storeFile'      => true,
+
+                /**
+                 * @var int Maximum file size (bytes)
+                 */
                 'maxlength'      => Config::get('maxFileSize'),
+
+                /**
+                 * @var string Allowed file extension
+                 */
                 'extensions'     => Config::get('validImageTypes'),
+
+                /**
+                 * @var mixed UUID of the thumbnail to show, if no picture uploaded
+                 */
                 'fallbackImage'  => null,
+
+                /**
+                 * @var array|int Size of the thumbnail. Either in the format [width, height, mode] or the tl_image_size.id
+                 */
                 'thumbnailSize'  => [],
+
+                /**
+                 * @var bool Show a "reset image" checkbox
+                 */
+                'enableReset'    => false,
+
+                /**
+                 * @var bool Display the meta wizard to fetch meta data like in the backend file manager
+                 */
+                'addMetaWizard'  => false,
             ],
             $attributes
         );
 
         parent::__construct($attributes);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validate()
+    {
+        // Delete the file when requested
+        if (true === $this->enableReset && $this->getPost($this->strName.'_reset')) {
+            if (null !== ($fileModel = FilesModel::findByPk($this->varValue))) {
+                $file = new File($fileModel->path);
+                $file->delete();
+            }
+
+            unset($_FILES[$this->strName]);
+
+            return;
+        }
+
+        // Handle file upload
+        parent::validate();
+
+        // Set the image as varValue
+        $file = $_SESSION['FILES'][$this->strName];
+        if (true === $file['uploaded']) {
+            $this->varValue = StringUtil::uuidToBin($file['uuid']);
+        }
     }
 
     /**
@@ -67,13 +155,13 @@ class FormUploadPreview extends FormFileUpload
     {
         $return = '';
 
-        $imageDimensions = (!empty($this->thumbnailSize))
-            ? $this->thumbnailSize
-            : [
+        if (empty($this->thumbnailSize)) {
+            $this->thumbnailSize = [
                 Config::get('imageWidth'),
                 Config::get('imageHeight'),
                 'box',
             ];
+        }
 
         $file = FilesModel::findByPk($this->varValue);
         if (null === $file && null !== $this->fallbackImage) {
@@ -81,16 +169,31 @@ class FormUploadPreview extends FormFileUpload
         }
         if (null !== $file) {
             $altTag = $file->name;
+            $image  = Image::create($file->path, $this->thumbnailSize)
+                ->executeResize();
 
-            $return .= '<img src="'
-                       .Image::get($file->path, $imageDimensions[0], $imageDimensions[1], $imageDimensions[2])
-                       .'" width="'.$imageDimensions[0].'" height="'.$imageDimensions[1].'" alt="'.$altTag
-                       .'" class="uploaded-image">';
+            $return .= sprintf(
+                '<img src="%s" width="%s" height="%s" alt="%s" class="uploaded-image">',
+                $image->getResizedPath(),
+                $image->getTargetWidth(),
+                $image->getTargetHeight(),
+                $altTag
+            );
         }
 
+        if ($this->addMetaWizard) {
 //@todo add meta wizard here
+        }
 
         $return .= parent::generate();
+
+        if ($this->enableReset) {
+            $return .= sprintf(
+                '<input type="checkbox" name="%s" class="checkbox" value=""><label>%s</label> ',
+                $this->strName.'_reset',
+                'Reset'
+            );
+        }
 
         return $return;
     }

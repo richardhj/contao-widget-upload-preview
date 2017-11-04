@@ -11,11 +11,6 @@
  * @license   https://github.com/richardhj/contao-widget-upload-preview/blob/master/LICENSE LGPL-3.0
  */
 
-/**
- * Register the templates
- */
-TemplateLoader::addFiles(
-    [
-        'form_upload_preview' => 'system/modules/upload-preview-widget/templates/form',
-    ]
-);
+use Richardhj\Contao\Widget\FormUploadPreview;
+
+$GLOBALS['TL_FFL']['uploadPreview'] = FormUploadPreview::class;
