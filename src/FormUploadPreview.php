@@ -116,6 +116,10 @@ class FormUploadPreview extends FormFileUpload
             $attributes
         );
 
+        if (null === $attributes['uploadFolder'] && isset($attributes['path'])) {
+            $attributes['uploadFolder'] = FilesModel::findByPath($attributes['path'])->uuid;
+        }
+
         parent::__construct($attributes);
     }
 
