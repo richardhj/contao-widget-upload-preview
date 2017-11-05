@@ -76,7 +76,7 @@ class FormUploadPreview extends FormFileUpload
                 /**
                  * @var bool Use the home directory of the user as save path
                  */
-                'useUserHomeDir' => false,
+                'useHomeDir' => false,
 
                 /**
                  * @var bool Store the file
