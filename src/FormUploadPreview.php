@@ -55,7 +55,9 @@ class FormUploadPreview extends FormFileUpload
     protected $blnSubmitInput = true;
 
     /**
-     * {@inheritdoc}
+     * Initialize the object.
+     *
+     * @param array $attributes An optional attributes array
      */
     public function __construct($attributes = null)
     {
@@ -124,7 +126,9 @@ class FormUploadPreview extends FormFileUpload
     }
 
     /**
-     * {@inheritdoc}
+     * Validate the user input and set the value.
+     *
+     * @throws \Exception
      */
     public function validate()
     {
