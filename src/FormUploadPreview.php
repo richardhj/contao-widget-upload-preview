@@ -177,8 +177,8 @@ class FormUploadPreview extends FormFileUpload
         }
         if (null !== $file) {
             $altTag = $file->name;
-            $image  = Image::create($file->path, $this->thumbnailSize)
-                ->executeResize();
+            $size   = deserialize($this->thumbnailSize);
+            $image  = Image::create($file->path, $size)->executeResize();
 
             $return .= sprintf(
                 '<img src="%s" width="%s" height="%s" alt="%s" class="uploaded-image">',
