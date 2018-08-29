@@ -151,6 +151,8 @@ class FormUploadPreview extends FormFileUpload
         $file = $_SESSION['FILES'][$this->strName];
         if (true === $file['uploaded']) {
             $this->varValue = StringUtil::uuidToBin($file['uuid']);
+        } else {
+            $this->blnSubmitInput = false;
         }
     }
 
